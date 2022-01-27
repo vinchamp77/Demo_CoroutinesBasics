@@ -1,74 +1,118 @@
 package com.example.coroutinesbasics.main
 
-import android.util.Log
-import androidx.compose.runtime.*
-import androidx.compose.ui.input.key.Key.Companion.Sleep
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.coroutinesbasics.utils.Utils
 import kotlinx.coroutines.*
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.NonCancellable.isActive
-import java.lang.Exception
-import kotlin.coroutines.coroutineContext
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+) : ViewModel() {
 
-    private val _data = mutableStateOf(-1)
-    val data: Int
-        get() = _data.value
+    companion object {
+        private const val TAG = "ViewModel"
+        private const val INVALID_DATA = -1
+        private const val DONE_DATA1 = 10
+        private const val DONE_DATA2 = 20
+    }
 
-    private var job: Job? = null
+    private val _data1 = mutableStateOf(INVALID_DATA)
+    val data1: Int get() = _data1.value
 
-    fun onLaunchButtonClick() {
+    private val _data2 = mutableStateOf(INVALID_DATA)
+    val data2: Int get() = _data2.value
+
+    private var currentJob: Job? = null
+
+    fun onButtonClick(useAsync: Boolean) {
+        if(currentJob != null) return
+
+        currentJob = viewModelScope.launch {
+            Utils.log(TAG, "======= Created launch coroutine - onButtonClick() =======")
+
+            val job1 = launch {
+                Utils.log(TAG, "+++++++ Created sub-coroutine for - data1 +++++++")
+                loadData(useAsync, start = 0, end = 9, data = _data1)
+                _data1.value = DONE_DATA1
+                Utils.log(TAG,"Sub-launch data1 - done!!!")
+            }
+
+            val job2 = launch {
+                Utils.log(TAG, "+++++++ Created sub-coroutine for - data2 +++++++")
+                loadData(useAsync, start = 10, end = 19, data = _data2)
+                _data2.value = DONE_DATA2
+                Utils.log(TAG,"Sub-launch data2 - done!!!")
+            }
+
+            job1.join()
+            job2.join()
+            currentJob = null
+            Utils.log(TAG,"Launch load data1 and data2 done!!!")
+        }
+    }
+
+    fun onCancelButtonClick() {
+        if (currentJob == null) return
+
         viewModelScope.launch {
-            log("Created new coroutine #1")
-            job?.cancelAndJoin()
+            Utils.log(TAG, "======= Created cancel coroutine - onCancelButtonClick() =======")
+            currentJob!!.cancelAndJoin()
+            _data1.value = INVALID_DATA
+            _data2.value = INVALID_DATA
+            currentJob = null
+            Utils.log(TAG, "onCancelButtonClick() -  done!!!")
+        }
+    }
 
-            job = launch {
-                try {
-                    log("Created new coroutine #2")
-                    loadData()
-                } catch (e: Exception) {
-                    log("Failed to load data! Error: $e")
+    private suspend fun loadData(
+        useAsync : Boolean,
+        start: Int,
+        end: Int,
+        data: MutableState<Int>
+    ) {
+        withContext(dispatcher) {
+            Utils.log(TAG,"Switched thread to $dispatcher")
+            for(index in start..end) {
+
+                if (useAsync) {
+                    val deferred = async {
+                        Utils.log(TAG, "+++++++ Created async coroutine - getData($index) +++++++")
+                        getData(index)
+                    }
+                    data.value = deferred.await()
+
+                } else {
+                    data.value = getData(index)
+                    allowCoroutineCancellable()
                 }
             }
         }
     }
 
-    fun onCancelButtonClick() {
-        viewModelScope.launch {
-            log("Created new coroutine #3")
-            job?.cancelAndJoin()
-            job = null
-            _data.value = -1
-        }
-    }
-
-    private suspend fun loadData() {
-        withContext(Dispatchers.Default) {
-            log("Switched thread to Dispatchers.Default")
-            repeat(500) { index ->
-                _data.value = index
-                simulateLongRunningTask()
-
-                yield()
-            }
-        }
+    private suspend fun getData(input: Int) : Int {
+        simulateLongRunningTask()
+        return input
     }
 
     private suspend fun simulateLongRunningTask() {
-        Thread.sleep(200)
-        yield() // ensure this coroutine is cancellable
-        simulateBackgroundTask()
+        simulateBlockingThreadTask()
+        simulateNonBlockingThreadTask()
     }
 
-    private suspend fun simulateBackgroundTask() {
+    private suspend fun simulateBlockingThreadTask() {
+        repeat(10) {
+            Thread.sleep(20)
+            allowCoroutineCancellable()
+        }
+    }
+
+    private suspend fun simulateNonBlockingThreadTask() {
         delay(200)
     }
 
-    private suspend fun log(msg: String) {
-        Log.d("vtsen", "[$coroutineContext]: $msg")
+    private suspend fun allowCoroutineCancellable() {
+        yield()
     }
 }
