@@ -14,15 +14,15 @@ class MainViewModel(
     companion object {
         private const val TAG = "ViewModel"
         private const val INVALID_DATA = -1
-        private const val DONE_DATA1 = 10
-        private const val DONE_DATA2 = 20
+        private const val DONE_LEFT_DATA = 10
+        private const val DONE_RIGHT_DATA = 20
     }
 
-    private val _data1 = mutableStateOf(INVALID_DATA)
-    val data1: Int get() = _data1.value
+    private val _leftData = mutableStateOf(INVALID_DATA)
+    val leftData: Int get() = _leftData.value
 
-    private val _data2 = mutableStateOf(INVALID_DATA)
-    val data2: Int get() = _data2.value
+    private val _rightData = mutableStateOf(INVALID_DATA)
+    val rightData: Int get() = _rightData.value
 
     private var currentJob: Job? = null
 
@@ -33,17 +33,17 @@ class MainViewModel(
             Utils.log(TAG, "======= Created launch coroutine - onButtonClick() =======")
 
             val job1 = launch {
-                Utils.log(TAG, "+++++++ Created sub-coroutine for - data1 +++++++")
-                loadData(useAsync, start = 0, end = 9, data = _data1)
-                _data1.value = DONE_DATA1
-                Utils.log(TAG,"Sub-launch data1 - done!!!")
+                Utils.log(TAG, "+++++++ Created sub-coroutine for - left data +++++++")
+                loadData(useAsync, start = 0, end = 9, data = _leftData)
+                _leftData.value = DONE_LEFT_DATA
+                Utils.log(TAG,"Sub-launch left data - done!!!")
             }
 
             val job2 = launch {
-                Utils.log(TAG, "+++++++ Created sub-coroutine for - data2 +++++++")
-                loadData(useAsync, start = 10, end = 19, data = _data2)
-                _data2.value = DONE_DATA2
-                Utils.log(TAG,"Sub-launch data2 - done!!!")
+                Utils.log(TAG, "+++++++ Created sub-coroutine for - right data +++++++")
+                loadData(useAsync, start = 10, end = 19, data = _rightData)
+                _rightData.value = DONE_RIGHT_DATA
+                Utils.log(TAG,"Sub-launch right data - done!!!")
             }
 
             job1.join()
@@ -59,8 +59,8 @@ class MainViewModel(
         viewModelScope.launch {
             Utils.log(TAG, "======= Created cancel coroutine - onCancelButtonClick() =======")
             currentJob!!.cancelAndJoin()
-            _data1.value = INVALID_DATA
-            _data2.value = INVALID_DATA
+            _leftData.value = INVALID_DATA
+            _rightData.value = INVALID_DATA
             currentJob = null
             Utils.log(TAG, "onCancelButtonClick() -  done!!!")
         }

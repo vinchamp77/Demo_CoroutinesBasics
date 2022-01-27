@@ -44,7 +44,10 @@ fun MainUI(viewModel: MainViewModel) {
         verticalArrangement = Arrangement.Center
 
     ) {
-        MainText(text1 = viewModel.data1.toString(), text2 = viewModel.data2.toString())
+        MainText(
+            leftText = viewModel.leftData.toString(),
+            rightText = viewModel.rightData.toString()
+        )
 
         DefaultButton(buttonName = "Launch", onButtonClick = {
             viewModel.onButtonClick(useAsync = false)
@@ -62,13 +65,13 @@ fun MainUI(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun MainText(text1: String, text2: String) {
+private fun MainText(leftText: String, rightText: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        DefaultText(text = text1, modifier = Modifier.fillMaxWidth().weight(1F))
-        DefaultText(text = text2, modifier = Modifier.fillMaxWidth().weight(1F))
+        DefaultText(text = leftText, modifier = Modifier.fillMaxWidth().weight(1F))
+        DefaultText(text = rightText, modifier = Modifier.fillMaxWidth().weight(1F))
     }
 
     Spacer(modifier = Modifier.height(10.dp))
