@@ -32,36 +32,42 @@ class MainViewModel(
         currentJob = viewModelScope.launch {
             Utils.log(TAG, "======= Created launch coroutine - onButtonClick() =======")
 
-            val job1 = launch {
-                Utils.log(TAG, "+++++++ Created sub-coroutine for - left data +++++++")
-                loadData(useAsync, start = 0, end = 9, data = _leftData)
-                _leftData.value = DONE_LEFT_DATA
-                Utils.log(TAG,"Sub-launch left data - done!!!")
-            }
+            try {
+                val job1 = launch {
+                    Utils.log(TAG, "+++++++ Created sub-coroutine for - left data +++++++")
+                    loadData(useAsync, start = 0, end = 9, data = _leftData)
+                    _leftData.value = DONE_LEFT_DATA
+                    Utils.log(TAG,"Sub-launch left data - done!!!")
+                }
 
-            val job2 = launch {
-                Utils.log(TAG, "+++++++ Created sub-coroutine for - right data +++++++")
-                loadData(useAsync, start = 10, end = 19, data = _rightData)
-                _rightData.value = DONE_RIGHT_DATA
-                Utils.log(TAG,"Sub-launch right data - done!!!")
-            }
+                val job2 = launch {
+                    Utils.log(TAG, "+++++++ Created sub-coroutine for - right data +++++++")
+                    loadData(useAsync, start = 10, end = 19, data = _rightData)
+                    _rightData.value = DONE_RIGHT_DATA
+                    Utils.log(TAG,"Sub-launch right data - done!!!")
+                }
 
-            job1.join()
-            job2.join()
-            currentJob = null
-            Utils.log(TAG,"Launch load data1 and data2 done!!!")
+                job1.join()
+                job2.join()
+                currentJob = null
+                Utils.log(TAG,"Launch load data1 and data2 done!!!")
+
+            } catch (e: Exception) {
+                _leftData.value = INVALID_DATA
+                _rightData.value = INVALID_DATA
+                currentJob = null
+                Utils.log(TAG,"Coroutines failed - $e")
+            }
         }
+
     }
 
     fun onCancelButtonClick() {
         if (currentJob == null) return
 
-        viewModelScope.launch {
+        viewModelScope.launch() {
             Utils.log(TAG, "======= Created cancel coroutine - onCancelButtonClick() =======")
             currentJob!!.cancelAndJoin()
-            _leftData.value = INVALID_DATA
-            _rightData.value = INVALID_DATA
-            currentJob = null
             Utils.log(TAG, "onCancelButtonClick() -  done!!!")
         }
     }
@@ -85,7 +91,6 @@ class MainViewModel(
 
                 } else {
                     data.value = getData(index)
-                    allowCoroutineCancellable()
                 }
             }
         }
@@ -104,15 +109,11 @@ class MainViewModel(
     private suspend fun simulateBlockingThreadTask() {
         repeat(10) {
             Thread.sleep(20)
-            allowCoroutineCancellable()
+            yield()
         }
     }
 
     private suspend fun simulateNonBlockingThreadTask() {
         delay(200)
-    }
-
-    private suspend fun allowCoroutineCancellable() {
-        yield()
     }
 }
