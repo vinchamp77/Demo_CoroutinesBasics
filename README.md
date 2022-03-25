@@ -6,4 +6,4 @@
 - Android Studio Bumblebee or later
 
 ## Articles
-- [Kotlin Coroutines Basics - Simple Android App Demo]() - To be published.
+- [Kotlin Coroutines Basics - Simple Android App Demo](https://vtsen.hashnode.dev/kotlin-coroutines-basics-simple-android-app-demo)
