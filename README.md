@@ -1,4 +1,4 @@
-# Simple Kotlin Coroutines App Demo
+# Simple Kotlin Coroutines App Demo (Jetpack Compose)
 
 ![](screenshots/Kotlin_Coroutines_Basics_Simple_Android_App_Demo_01.gif)
 
