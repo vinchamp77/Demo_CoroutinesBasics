@@ -5,5 +5,9 @@
 ## Requirements
 - Android Studio Bumblebee or later
 
+## Tech Stack
+- Jetpack Compose
+- Kotlin Coroutines
+
 ## Articles
 - [Kotlin Coroutines Basics - Simple Android App Demo](https://vtsen.hashnode.dev/kotlin-coroutines-basics-simple-android-app-demo)
